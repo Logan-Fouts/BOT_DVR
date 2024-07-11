@@ -4,20 +4,26 @@ import pull_meta as pm
 import obs_controller
 
 
-def main():
+async def run_recording_session(obs_ws, episode_length):
     """
-    Runs the automated screen recorder.
+    Runs a single recording session.
     """
+    print(f"Starting recording session for {episode_length} seconds")
+    await obs_controller.record(obs_ws, episode_length)
+    print("Recording session completed")
 
-    pltfrm = int(input("Enter the platform (0: Disney+ 1: Netflix): "))
-    meta_puller = pm.MetaPuller(slctd_pltfrm=pltfrm)
+
+async def main():
+    """
+    Runs the automated screen recorder multiple times.
+    """
+    num_runs = 3
+    break_duration = 5
+
+    meta_puller = pm.MetaPuller()
     meta_puller.run()
     episode_length = meta_puller.length
-    print(f"Seconds to record: {episode_length}")
-
-    if not episode_length or episode_length == 0:
-        print("Episode length not correct.")
-        sys.exit
+    print(f"Seconds to record in each session: {episode_length}")
 
     try:
         obs_ws = obs_controller.setup_ws()
@@ -25,8 +31,16 @@ def main():
         print(str(e))
         sys.exit(1)
 
-    asyncio.run(obs_controller.record(obs_ws, episode_length))
+    for i in range(num_runs):
+        print(f"\nStarting recording session {i+1} of {num_runs}")
+        await run_recording_session(obs_ws, episode_length)
+
+        if i < num_runs - 1:
+            print(f"Taking a {break_duration}-second break before the next session")
+            await asyncio.sleep(break_duration)
+
+    print("\nAll recording sessions completed")
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
