@@ -17,8 +17,8 @@ async def main():
     """
     Runs the automated screen recorder multiple times.
     """
-    num_runs = 7
-    break_duration = 10
+    num_runs = 1
+    break_duration = 7
 
     for i in range(num_runs):
         meta_puller = pm.MetaPuller(slctd_pltfrm=0)
