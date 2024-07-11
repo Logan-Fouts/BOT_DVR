@@ -40,8 +40,8 @@ async def record(obs_ws, episode_length):
     ws = obsws(obs_ws.host, obs_ws.port, obs_ws.password)
     ws.connect()
     try:
-        response = ws.call(requests.ToggleRecord())
-        print("Recording started:", response.status)
+        ws.call(requests.ToggleRecord())
+        print("Recording started")
         await asyncio.sleep(episode_length - 5)
         ws.call(requests.ToggleRecord())
         print("Recording stopped")

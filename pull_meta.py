@@ -5,8 +5,6 @@ import numpy as np
 from PIL import Image, ImageEnhance, ImageFilter
 import pyautogui as pg
 
-# import pytesseract
-
 
 @dataclass
 class Platform:
@@ -34,7 +32,6 @@ class MetaPuller:
         self.final_ss = "ep_length.png"
         self.length = 0
 
-    # TODO: Allow user to choose platform easier.
     def run(self):
         """
         Pulls length of episode from screen shot.
@@ -107,17 +104,6 @@ class MetaPuller:
 
         print(f"Interpreted episode length: {self.length}")
 
-    # def extract_number_from_image(self, image_path):
-    #     """
-    #     Uses pytesseract to extract timestamp from screenshot.
-    #     """
-    #     image = Image.open(image_path).convert("L")
-    #
-    #     enhancer = ImageEnhance.Contrast(image)
-    #     image = enhancer.enhance(2).filter(ImageFilter.SHARPEN)
-    #
-    #     self.length = pytesseract.image_to_string(image, lang="eng", config="--psm 6")
-
     def timestamp_to_seconds(self, timestamp):
         """
         Converts time stamp into seconds to record.
@@ -137,4 +123,4 @@ class MetaPuller:
         self.length = total_seconds
 
         if self.slctd_pltfrm == 0:
-            self.length = self.length - 50
+            self.length = self.length - 60
