@@ -1,17 +1,16 @@
 import asyncio
 import sys
-from dotenv import load_dotenv
 import pull_meta as pm
 import obs_controller
-
-load_dotenv()
 
 
 def main():
     """
     Runs the automated screen recorder.
     """
-    meta_puller = pm.MetaPuller()
+
+    pltfrm = int(input("Enter the platform (0: Disney+ 1: Netflix): "))
+    meta_puller = pm.MetaPuller(slctd_pltfrm=pltfrm)
     meta_puller.run()
     episode_length = meta_puller.length
     print(f"Seconds to record: {episode_length}")

@@ -2,6 +2,9 @@ import os
 import asyncio
 from dataclasses import dataclass
 from obswebsocket import obsws, requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 @dataclass
