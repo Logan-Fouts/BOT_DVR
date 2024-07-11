@@ -32,7 +32,7 @@ class MetaPuller:
         self.platforms = []
         self.setup_platforms()
         self.final_ss = "ep_length.png"
-        self.length = None
+        self.length = 0
 
     # TODO: Allow user to choose platform easier.
     def run(self):
@@ -103,7 +103,8 @@ class MetaPuller:
         if results:
             self.length = results[0][1]
         else:
-            self.length = None
+            self.length = 0
+
         print(f"Interpreted episode length: {self.length}")
 
     # def extract_number_from_image(self, image_path):
@@ -134,3 +135,6 @@ class MetaPuller:
             total_seconds += int(pair) * (60**i)
 
         self.length = total_seconds
+
+        if self.slctd_pltfrm == 0:
+            self.length = self.length - 50

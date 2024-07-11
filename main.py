@@ -17,21 +17,21 @@ async def main():
     """
     Runs the automated screen recorder multiple times.
     """
-    num_runs = 3
-    break_duration = 5
-
-    meta_puller = pm.MetaPuller()
-    meta_puller.run()
-    episode_length = meta_puller.length
-    print(f"Seconds to record in each session: {episode_length}")
-
-    try:
-        obs_ws = obs_controller.setup_ws()
-    except ValueError as e:
-        print(str(e))
-        sys.exit(1)
+    num_runs = 7
+    break_duration = 10
 
     for i in range(num_runs):
+        meta_puller = pm.MetaPuller(slctd_pltfrm=0)
+        meta_puller.run()
+        episode_length = meta_puller.length
+        print(f"Seconds to record: {episode_length}")
+
+        try:
+            obs_ws = obs_controller.setup_ws()
+        except ValueError as e:
+            print(str(e))
+            sys.exit(1)
+
         print(f"\nStarting recording session {i+1} of {num_runs}")
         await run_recording_session(obs_ws, episode_length)
 
