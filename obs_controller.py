@@ -29,7 +29,6 @@ def setup_ws():
         raise ValueError(
             "Please provide all required info to connect to obs websocket."
         )
-    print(f"Connecting to host: {host} on port: {port} with password: {password}")
     return ObsWebConnection(host, port, password)
 
 

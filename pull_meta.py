@@ -102,8 +102,6 @@ class MetaPuller:
         else:
             self.length = 0
 
-        print(f"Interpreted episode length: {self.length}")
-
     def timestamp_to_seconds(self, timestamp):
         """
         Converts time stamp into seconds to record.

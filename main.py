@@ -18,9 +18,7 @@ def send_discord_notification(message):
     if DISCORD_WEBHOOK_URL:
         webhook = DiscordWebhook(url=DISCORD_WEBHOOK_URL, content=message)
         response = webhook.execute()
-        if response.status_code == 204:
-            print("Discord notification sent successfully")
-        else:
+        if response.status_code != 204 or response.status_code != 200:
             print(
                 f"Failed to send Discord notification. Status code: {response.status_code}"
             )
@@ -49,7 +47,6 @@ async def main():
         meta_puller = pm.MetaPuller(slctd_pltfrm=pltfrm)
         meta_puller.run()
         episode_length = meta_puller.length
-        print(f"Seconds to record: {episode_length}")
 
         try:
             obs_ws = obs_controller.setup_ws()
@@ -57,7 +54,7 @@ async def main():
             print(str(e))
             sys.exit(1)
 
-        print(f"\nStarting recording session {i+1} of {num_runs}")
+        print(f"\n~~~~~~~~~~\nStarting recording session {i+1} of {num_runs}")
         await run_recording_session(obs_ws, episode_length)
 
         message = (
@@ -66,7 +63,9 @@ async def main():
         send_discord_notification(message)
 
         if i < num_runs - 1:
-            print(f"Taking a {break_duration}-second break before the next session")
+            print(
+                f"Taking a {break_duration}-second break before the next session\n~~~~~~~~~~\n\n"
+            )
             await asyncio.sleep(break_duration)
 
     message = "Recording session finished!"
