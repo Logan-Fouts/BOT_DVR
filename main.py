@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
-
+SLEEP = True
 
 def send_discord_notification(message):
     """
@@ -72,6 +72,8 @@ async def main():
     send_discord_notification(message)
 
     print("\nAll recording sessions completed")
+    if SLEEP:
+        os.system("systemctl suspend")
 
 
 if __name__ == "__main__":
