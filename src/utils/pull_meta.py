@@ -29,7 +29,7 @@ class MetaPuller:
         self.slctd_pltfrm = slctd_pltfrm
         self.platforms = []
         self.setup_platforms()
-        self.final_ss = "ep_length.png"
+        self.final_ss = "assets/images/ep_length.png"
         self.length = 0
 
     def run(self):
@@ -50,13 +50,13 @@ class MetaPuller:
         self.platforms = [
             Platform(
                 name="Dinsey",
-                img_ll="ll_images/disney_ll.png",
+                img_ll="assets/images/ll_images/disney_ll.png",
                 move_left=30,
                 move_top=25,
             ),
             Platform(
                 name="Netflix",
-                img_ll="ll_images/netflix_ll.png",
+                img_ll="assets/images/ll_images/netflix_ll.png",
                 move_left=80,
                 move_top=-65,
             ),
@@ -121,7 +121,7 @@ class MetaPuller:
         self.length = total_seconds
 
         if self.slctd_pltfrm == 0:
-            self.length = self.length - 75
+            self.length = self.length - 70
 
     def reset_run(self):
         """
@@ -133,7 +133,7 @@ class MetaPuller:
         pg.click(950, 600, duration=0.5)
 
         time.sleep(2)
-        for _ in range(50):
+        for _ in range(200):
             time.sleep(0.17)
             pg.press("left")
 

@@ -1,11 +1,11 @@
 import asyncio
 import os
 import sys
-import pull_meta as pm
-import obs_controller
-import timing as tm
+import controllers.obs_controller as obs_controller
+import utils.timing as tm
 from discord_webhook import DiscordWebhook
 from dotenv import load_dotenv
+import utils.pull_meta as pm
 
 load_dotenv()
 
@@ -72,14 +72,66 @@ async def run_sessions(num_runs, pltfrm, shortest):
         send_discord_notification(message)
 
 
+def get_valid_input(prompt, valid_options=None, input_type=int):
+    """
+    Validates user input.
+    """
+    while True:
+        try:
+            user_input = input_type(input(prompt))
+            if valid_options is not None and user_input not in valid_options:
+                raise ValueError
+            return user_input
+        except ValueError:
+            if valid_options:
+                print(
+                    f"Invalid input. Please enter one of these options: {valid_options}"
+                )
+            else:
+                print(f"Invalid input. Please enter a valid {input_type.__name__}.")
+
+
+def get_platform_choice():
+    """
+    Gets input and validates plaform choice.
+    """
+    platforms = {0: "Disney", 1: "Netflix"}
+    prompt = "What platform?\n" + "\n".join(
+        f"{key}: {value}" for key, value in platforms.items()
+    )
+    prompt += "\nEnter the number of your choice: "
+    return get_valid_input(prompt, valid_options=platforms.keys())
+
+
+def get_number_of_episodes():
+    """
+    Gets input and validates for number of episodes.
+    """
+    return get_valid_input("How many episodes? ", input_type=int)
+
+
+def get_shortest_episode():
+    """
+    Gets input and validates for shortest episode.
+    """
+    return get_valid_input("What is the shortest episode in minutes? ", input_type=int)
+
+
+def get_sleep_choice():
+    """
+    Gets input and validates for sleep option.
+    """
+    return get_valid_input("Sleep when done? (0: No, 1: Yes): ", valid_options=[0, 1])
+
+
 async def main():
     """
     Runs the automated screen recorder multiple times.
     """
-    pltfrm = int(input("What platform? (0: Disney, 1: Netflix [more to come :)])"))
-    num_runs = int(input("How many episodes? "))
-    shortest_ep = int(input("What is the shortest episode in mins? "))
-    sleep = int(input("Sleep when done? 0-No 1-Yes "))
+    pltfrm = get_platform_choice()
+    num_runs = get_number_of_episodes()
+    shortest_ep = get_shortest_episode()
+    sleep = get_sleep_choice()
 
     await run_sessions(num_runs, pltfrm, shortest_ep)
 

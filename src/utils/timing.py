@@ -13,7 +13,7 @@ class Ep_Detector:
         """
         Initializes the Ep_Detector with default values and sets up the PyAudio object.
         """
-        self.silence_time = 0.1
+        self.silence_time = 0.35
         self.silence_thresh = 0.0000001
         self.last_audio_time = time.time()
         self.silence_notified = False
