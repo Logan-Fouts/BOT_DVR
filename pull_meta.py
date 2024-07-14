@@ -121,4 +121,23 @@ class MetaPuller:
         self.length = total_seconds
 
         if self.slctd_pltfrm == 0:
-            self.length = self.length - 60
+            self.length = self.length - 75
+
+    def reset_run(self):
+        """
+        Attempts to restart episode before running again.
+        """
+        print("Reseting this episode and trying again.")
+
+        time.sleep(2)
+        pg.click(950, 600, duration=0.5)
+
+        time.sleep(2)
+        for _ in range(50):
+            time.sleep(0.17)
+            pg.press("left")
+
+        time.sleep(5)
+        pg.click(960, 545, duration=1)
+
+        self.run()

@@ -3,13 +3,14 @@ import os
 import sys
 import pull_meta as pm
 import obs_controller
+import timing as tm
 from discord_webhook import DiscordWebhook
 from dotenv import load_dotenv
 
 load_dotenv()
 
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
-SLEEP = True
+
 
 def send_discord_notification(message):
     """
@@ -17,11 +18,7 @@ def send_discord_notification(message):
     """
     if DISCORD_WEBHOOK_URL:
         webhook = DiscordWebhook(url=DISCORD_WEBHOOK_URL, content=message)
-        response = webhook.execute()
-        if response.status_code != 204 or response.status_code != 200:
-            print(
-                f"Failed to send Discord notification. Status code: {response.status_code}"
-            )
+        webhook.execute()
     else:
         print("Discord webhook URL not set. Skipping notification.")
 
@@ -35,17 +32,28 @@ async def run_recording_session(obs_ws, episode_length):
     print("Recording session completed")
 
 
-async def main():
+async def run_sessions(num_runs, pltfrm, shortest):
     """
-    Runs the automated screen recorder multiple times.
+    Runs all episode recording sessions.
     """
-    pltfrm = int(input("What platform? (0: Disney, 1: Netflix [more to come :)])"))
-    num_runs = int(input("How many episodes? "))
-    break_duration = int(input("How long breaks between episodes? "))
-
     for i in range(num_runs):
+
+        if i > 0:
+            detector = tm.Ep_Detector()
+            detector.init_stream()
+            if detector.run():
+                print("New episode start detected!")
+
         meta_puller = pm.MetaPuller(slctd_pltfrm=pltfrm)
         meta_puller.run()
+
+        while (
+            meta_puller.length // 60 < shortest
+            or meta_puller.length // 60 > shortest * 3
+        ):
+            print("Short episode, checking if this is correct.")
+            meta_puller.reset_run()
+
         episode_length = meta_puller.length
 
         try:
@@ -54,26 +62,34 @@ async def main():
             print(str(e))
             sys.exit(1)
 
+        message = f"Episode {i+1}/{num_runs} starting, it is {episode_length // 60} mins long."
+        send_discord_notification(message)
+
         print(f"\n~~~~~~~~~~\nStarting recording session {i+1} of {num_runs}")
         await run_recording_session(obs_ws, episode_length)
 
-        message = (
-            f"Episode {i+1} complete, it was {meta_puller.length // 60} mins long."
-        )
+        message = f"Episode {i+1} complete!"
         send_discord_notification(message)
 
-        if i < num_runs - 1:
-            print(
-                f"Taking a {break_duration}-second break before the next session\n~~~~~~~~~~\n\n"
-            )
-            await asyncio.sleep(break_duration)
+
+async def main():
+    """
+    Runs the automated screen recorder multiple times.
+    """
+    pltfrm = int(input("What platform? (0: Disney, 1: Netflix [more to come :)])"))
+    num_runs = int(input("How many episodes? "))
+    shortest_ep = int(input("What is the shortest episode in mins? "))
+    sleep = int(input("Sleep when done? 0-No 1-Yes "))
+
+    await run_sessions(num_runs, pltfrm, shortest_ep)
 
     message = "Recording session finished!"
     send_discord_notification(message)
 
     print("\nAll recording sessions completed")
-    if SLEEP:
-        os.system("systemctl suspend")
+
+    if sleep == 1:
+        os.system("systemctl suspend -i")
 
 
 if __name__ == "__main__":
