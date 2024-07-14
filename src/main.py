@@ -73,6 +73,9 @@ class RecordingSessionManager:
             length = meta_puller.length // 60
             if self.shortest_episode <= length <= self.shortest_episode * 3:
                 return meta_puller.length
+            self.send_notification(
+                "Unusual episode length detected, {meta_puller.length // 60} mins. Rechecking..."
+            )
             print("Unusual episode length detected. Rechecking...")
             meta_puller.reset_run()
 
