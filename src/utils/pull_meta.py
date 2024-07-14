@@ -121,7 +121,7 @@ class MetaPuller:
         self.length = total_seconds
 
         if self.slctd_pltfrm == 0:
-            self.length = self.length - 70
+            self.length = self.length - 75
 
     def reset_run(self):
         """

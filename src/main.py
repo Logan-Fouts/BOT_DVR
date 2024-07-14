@@ -1,10 +1,19 @@
+"""
+Automated Screen Recording Session Manager
+
+This module manages multiple automated screen recording sessions,
+integrating with OBS, Discord notifications, and platform-specific metadata.
+"""
+
 import asyncio
 import os
 import sys
-import controllers.obs_controller as obs_controller
-import utils.timing as tm
+from typing import Dict, Any
 from discord_webhook import DiscordWebhook
 from dotenv import load_dotenv
+
+from controllers import obs_controller
+import utils.timing as tm
 import utils.pull_meta as pm
 
 load_dotenv()
@@ -12,135 +21,128 @@ load_dotenv()
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 
 
-def send_discord_notification(message):
-    """
-    Sends a notification to Discord.
-    """
-    if DISCORD_WEBHOOK_URL:
-        webhook = DiscordWebhook(url=DISCORD_WEBHOOK_URL, content=message)
-        webhook.execute()
-    else:
-        print("Discord webhook URL not set. Skipping notification.")
+class RecordingSessionManager:
+    """Manages the execution of multiple recording sessions."""
 
+    def __init__(self, platform: int, num_episodes: int, shortest_episode: int):
+        self.platform = platform
+        self.num_episodes = num_episodes
+        self.shortest_episode = shortest_episode
 
-async def run_recording_session(obs_ws, episode_length):
-    """
-    Runs a single recording session.
-    """
-    print(f"Starting recording session for {episode_length} seconds")
-    await obs_controller.record(obs_ws, episode_length)
-    print("Recording session completed")
+    async def run_sessions(self):
+        """Executes all recording sessions."""
+        for i in range(self.num_episodes):
+            await self.run_single_session(i)
 
+    async def run_single_session(self, session_number: int):
+        """Runs a single recording session."""
+        if session_number > 0:
+            self._detect_new_episode()
 
-async def run_sessions(num_runs, pltfrm, shortest):
-    """
-    Runs all episode recording sessions.
-    """
-    for i in range(num_runs):
-
-        if i > 0:
-            detector = tm.Ep_Detector()
-            detector.init_stream()
-            if detector.run():
-                print("New episode start detected!")
-
-        meta_puller = pm.MetaPuller(slctd_pltfrm=pltfrm)
-        meta_puller.run()
-
-        while (
-            meta_puller.length // 60 < shortest
-            or meta_puller.length // 60 > shortest * 3
-        ):
-            print("Short episode, checking if this is correct.")
-            meta_puller.reset_run()
-
-        episode_length = meta_puller.length
+        episode_length = self._get_episode_length()
 
         try:
             obs_ws = obs_controller.setup_ws()
         except ValueError as e:
-            print(str(e))
-            sys.exit(1)
+            self._handle_error(f"OBS WebSocket setup failed: {str(e)}")
+            return
 
-        message = f"Episode {i+1}/{num_runs} starting, it is {episode_length // 60} mins long."
-        send_discord_notification(message)
+        self.send_notification(
+            f"Episode {session_number + 1}/{self.num_episodes} starting, it is {episode_length // 60} mins long."
+        )
 
-        print(f"\n~~~~~~~~~~\nStarting recording session {i+1} of {num_runs}")
-        await run_recording_session(obs_ws, episode_length)
+        print(
+            f"\n{'~' * 10}\nStarting recording session {session_number + 1} of {self.num_episodes}"
+        )
+        await self._record_episode(obs_ws, episode_length)
 
-        message = f"Episode {i+1} complete!"
-        send_discord_notification(message)
+        self.send_notification(f"Episode {session_number + 1} complete!")
+
+    def _detect_new_episode(self):
+        """Detects the start of a new episode."""
+        detector = tm.Ep_Detector()
+        detector.init_stream()
+        if detector.run():
+            print("New episode start detected!")
+
+    def _get_episode_length(self) -> int:
+        """Retrieves and validates the episode length."""
+        meta_puller = pm.MetaPuller(slctd_pltfrm=self.platform)
+        while True:
+            meta_puller.run()
+            length = meta_puller.length // 60
+            if self.shortest_episode <= length <= self.shortest_episode * 3:
+                return meta_puller.length
+            print("Unusual episode length detected. Rechecking...")
+            meta_puller.reset_run()
+
+    async def _record_episode(self, obs_ws: Any, episode_length: int):
+        """Records a single episode."""
+        print(f"Starting recording session for {episode_length} seconds")
+        await obs_controller.record(obs_ws, episode_length)
+        print("Recording session completed")
+
+    def send_notification(self, message: str):
+        """Sends a notification to Discord."""
+        if DISCORD_WEBHOOK_URL:
+            webhook = DiscordWebhook(url=DISCORD_WEBHOOK_URL, content=message)
+            webhook.execute()
+        else:
+            print("Discord webhook URL not set. Skipping notification.")
+
+    def _handle_error(self, error_message: str):
+        """Handles errors by logging and exiting."""
+        print(f"Error: {error_message}")
+        sys.exit(1)
 
 
-def get_valid_input(prompt, valid_options=None, input_type=int):
-    """
-    Validates user input.
-    """
-    while True:
-        try:
-            user_input = input_type(input(prompt))
-            if valid_options is not None and user_input not in valid_options:
-                raise ValueError
-            return user_input
-        except ValueError:
-            if valid_options:
+def get_user_input() -> Dict[str, int]:
+    """Collects and validates user input."""
+
+    def get_valid_input(prompt: str, valid_options: list = None) -> int:
+        while True:
+            try:
+                user_input = int(input(prompt))
+                if valid_options and user_input not in valid_options:
+                    raise ValueError
+                return user_input
+            except ValueError:
                 print(
-                    f"Invalid input. Please enter one of these options: {valid_options}"
+                    f"Invalid input. Please enter a valid integer{' from these options: ' + str(valid_options) if valid_options else ''}."
                 )
-            else:
-                print(f"Invalid input. Please enter a valid {input_type.__name__}.")
 
-
-def get_platform_choice():
-    """
-    Gets input and validates plaform choice.
-    """
     platforms = {0: "Disney", 1: "Netflix"}
-    prompt = "What platform?\n" + "\n".join(
+    platform_prompt = "What platform?\n" + "\n".join(
         f"{key}: {value}" for key, value in platforms.items()
     )
-    prompt += "\nEnter the number of your choice: "
-    return get_valid_input(prompt, valid_options=platforms.keys())
+    platform_prompt += "\nEnter the number of your choice: "
 
-
-def get_number_of_episodes():
-    """
-    Gets input and validates for number of episodes.
-    """
-    return get_valid_input("How many episodes? ", input_type=int)
-
-
-def get_shortest_episode():
-    """
-    Gets input and validates for shortest episode.
-    """
-    return get_valid_input("What is the shortest episode in minutes? ", input_type=int)
-
-
-def get_sleep_choice():
-    """
-    Gets input and validates for sleep option.
-    """
-    return get_valid_input("Sleep when done? (0: No, 1: Yes): ", valid_options=[0, 1])
+    return {
+        "platform": get_valid_input(platform_prompt, list(platforms.keys())),
+        "num_episodes": get_valid_input("How many episodes? "),
+        "shortest_episode": get_valid_input(
+            "What is the shortest episode in minutes? "
+        ),
+        "sleep": get_valid_input("Sleep when done? (0: No, 1: Yes): ", [0, 1]),
+    }
 
 
 async def main():
-    """
-    Runs the automated screen recorder multiple times.
-    """
-    pltfrm = get_platform_choice()
-    num_runs = get_number_of_episodes()
-    shortest_ep = get_shortest_episode()
-    sleep = get_sleep_choice()
+    """Main function to run the automated screen recorder."""
+    user_input = get_user_input()
 
-    await run_sessions(num_runs, pltfrm, shortest_ep)
+    manager = RecordingSessionManager(
+        user_input["platform"],
+        user_input["num_episodes"],
+        user_input["shortest_episode"],
+    )
 
-    message = "Recording session finished!"
-    send_discord_notification(message)
+    await manager.run_sessions()
 
+    manager.send_notification("Recording session finished!")
     print("\nAll recording sessions completed")
 
-    if sleep == 1:
+    if user_input["sleep"] == 1:
         os.system("systemctl suspend -i")
 
 
