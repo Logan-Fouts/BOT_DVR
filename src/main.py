@@ -68,7 +68,10 @@ class RecordingSessionManager:
     def _get_episode_length(self) -> int:
         """Retrieves and validates the episode length."""
         meta_puller = pm.MetaPuller(slctd_pltfrm=self.platform)
+        i = 0
         while True:
+            if i > 4:
+                self.shortest_episode = self.shortest_episode - 5
             meta_puller.run()
             length = meta_puller.length // 60
             if self.shortest_episode <= length <= self.shortest_episode * 3:
@@ -78,6 +81,7 @@ class RecordingSessionManager:
             )
             print("Unusual episode length detected. Rechecking...")
             meta_puller.reset_run()
+            i += 1
 
     async def _record_episode(self, obs_ws: Any, episode_length: int):
         """Records a single episode."""
