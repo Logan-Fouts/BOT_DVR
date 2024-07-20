@@ -138,7 +138,7 @@ class MetaPuller:
         time.sleep(10)
         pg.click(950, 600, duration=0.5)
 
-        time.sleep(1)
+        time.sleep(5)
         pg.hotkey("f")
 
         time.sleep(6)
