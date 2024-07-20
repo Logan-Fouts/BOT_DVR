@@ -136,6 +136,7 @@ def get_user_input() -> Dict[str, int]:
 
 async def main():
     """Main function to run the automated screen recorder."""
+
     user_input = get_user_input()
 
     manager = RecordingSessionManager(

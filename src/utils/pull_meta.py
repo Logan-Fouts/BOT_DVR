@@ -121,7 +121,7 @@ class MetaPuller:
         self.length = total_seconds
 
         if self.slctd_pltfrm == 0:
-            self.length = self.length - 75
+            self.length = self.length - 35
 
     def reset_run(self):
         """
@@ -132,7 +132,16 @@ class MetaPuller:
         time.sleep(2)
         pg.click(950, 600, duration=0.5)
 
-        time.sleep(2)
+        time.sleep(5)
+        pg.hotkey("ctrl", "shift", "r")
+
+        time.sleep(10)
+        pg.click(950, 600, duration=0.5)
+
+        time.sleep(1)
+        pg.hotkey("f")
+
+        time.sleep(6)
         for _ in range(200):
             time.sleep(0.17)
             pg.press("left")
