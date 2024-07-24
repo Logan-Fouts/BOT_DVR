@@ -8,6 +8,7 @@ integrating with OBS, Discord notifications, and platform-specific metadata.
 import asyncio
 import os
 import sys
+import subprocess
 from typing import Dict, Any
 from discord_webhook import DiscordWebhook
 from dotenv import load_dotenv
@@ -134,6 +135,19 @@ def get_user_input() -> Dict[str, int]:
     }
 
 
+def setup_env():
+    """
+    Sets up the computer so bot can run correctly.
+    """
+    subprocess.run(["xhost", "+local:"])
+    os.system(
+        "pactl load-module module-null-sink sink_name=VirtualSink sink_properties=device.description=VirtualSink"
+    )
+    os.system(
+        "pactl load-module module-virtual-source source_name=VirtualSource master=VirtualSink.monitor"
+    )
+
+
 async def main():
     """Main function to run the automated screen recorder."""
 
@@ -155,4 +169,5 @@ async def main():
 
 
 if __name__ == "__main__":
+    setup_env()
     asyncio.run(main())
