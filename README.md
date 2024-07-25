@@ -1,6 +1,6 @@
 # Bot_DVR
 
-This is a Python-based project designed to automatically record series from various streaming platforms using OBS Websockets. The project leverages machine learning to extract timestamps and locate timestamp positions on the screen. This ensures accurate and efficient recording of your favorite series episodes.
+This is just a test project to play with making some sort of bot. It is not intended for "real" use. This is a Python-based project designed to automatically record series from various streaming platforms using OBS Websockets. The project leverages machine learning to extract timestamps and locate timestamp positions on the screen. It also used system audio to determine exactly when a new episode it starting. It is also capable of fixing its own issues such as incorrect timestamp interpretation, down websites, and episodes starting partially already through.
 
 This is an early wip. So things are likely to chance significantly.
 
@@ -23,7 +23,7 @@ This is an early wip. So things are likely to chance significantly.
 - Machine learning to detect and extract timestamps from the screen.
 
 ## Prerequisites
-
+- Linux with pipewire and xhost
 - Python 3.6+
 - OBS Studio with OBS Websockets plugin installed, and enabled
 - easyocr
@@ -34,7 +34,7 @@ This is an early wip. So things are likely to chance significantly.
 
    ```sh
    git clone https://github.com/Logan-Fouts/SIP.git
-   cd SIP
+   cd BOT_DVR
    ```
 
 2. **Create a virtual environment and activate it:**
@@ -60,25 +60,6 @@ This is an early wip. So things are likely to chance significantly.
    PASSWORD=your_obs_websocket_password
    ```
 
-2. **Create a `platforms.json` file** in the root directory to configure the streaming platforms:
-
-   ```json
-   [
-     {
-       "name": "Disney",
-       "img_ll": "~/Code/GimmieDat/ll_images/disney_ll.png",
-       "move_left": 30,
-       "move_top": 25
-     },
-     {
-       "name": "Netflix",
-       "img_ll": "~/Code/GimmieDat/ll_images/netflix_ll.png",
-       "move_left": 0,
-       "move_top": -70
-     }
-   ]
-   ```
-
 ## Usage
 
 1. **Start OBS Studio** and ensure the OBS Websocket server is running.
@@ -88,34 +69,17 @@ This is an early wip. So things are likely to chance significantly.
 3. **Run the script:**
 
    ```sh
-   python main.py
+   chmod +X run.sh
+   ./run.sh
    ```
 
    The script will automatically:
-
+   - Setup audio sinks.
+   - Fix xhost permissions.
    - Connect to the OBS Websocket.
    - Detect and locate timestamps on the streaming platform.
    - Start and stop recording based on the extracted timestamps.
 
-## Directory Structure
-
-```plaintext
-SIP /
-├── ll_images/
-│   ├── disney_ll.png
-│   ├── netflix_ll.png
-├── main.py
-├── platforms.json
-├── pull_meta.py
-├── requirements.txt
-├── README.md
-└── .env
-```
-
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
