@@ -1,6 +1,6 @@
-# SIP (Stealing Isn't Piracy)
+# Bot_DVR
 
-SIP is a Python-based project designed to automatically record series from various streaming platforms using OBS Websockets. The project leverages machine learning to extract timestamps and locate timestamp positions on the screen. This ensures accurate and efficient recording of your favorite series episodes.
+This is a Python-based project designed to automatically record series from various streaming platforms using OBS Websockets. The project leverages machine learning to extract timestamps and locate timestamp positions on the screen. This ensures accurate and efficient recording of your favorite series episodes.
 
 This is an early wip. So things are likely to chance significantly.
 
