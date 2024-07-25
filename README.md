@@ -11,10 +11,7 @@ This is an early wip. So things are likely to chance significantly.
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
-- [Directory Structure](#directory-structure)
 - [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
 
 ## Features
 
