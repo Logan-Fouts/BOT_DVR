@@ -1,8 +1,11 @@
 import os
+import time
 import asyncio
 from dataclasses import dataclass
 from obswebsocket import obsws, requests
 from dotenv import load_dotenv
+import pyautogui as pg
+import utils.pull_meta as pm
 
 load_dotenv()
 
@@ -32,16 +35,30 @@ def setup_ws():
     return ObsWebConnection(host, port, password)
 
 
+async def check_end():
+    """
+    Checks for location of skip button to determine if end of episode.
+    """
+    location = None
+
+    while location is None:
+        meta_puller = pm.MetaPuller()
+        location = meta_puller.find_skip()
+
+
 async def record(obs_ws, episode_length):
     """
     Connects to obs websocket and starts and stops recording for given time.
     """
     ws = obsws(obs_ws.host, obs_ws.port, obs_ws.password)
     ws.connect()
+
     try:
         ws.call(requests.ToggleRecord())
         print("Recording started")
-        await asyncio.sleep(episode_length - 5)
+        await asyncio.sleep(episode_length - 90)
+        await check_end()
+        print("End detected stopping recording.")
         ws.call(requests.ToggleRecord())
         print("Recording stopped")
     finally:

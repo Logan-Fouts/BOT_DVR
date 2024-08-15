@@ -1,25 +1,14 @@
 import time
-from dataclasses import dataclass
 import easyocr
 import numpy as np
 from PIL import Image, ImageEnhance, ImageFilter
 import pyautogui as pg
 
-
-@dataclass
-class Platform:
-    """
-    Stores information about streaming platform
-    to be recoreded.
-    """
-
-    name: str
-    img_ll: str
-    move_left: int
-    move_top: int
+from models.platforms import PlatformFactory as pfrms
+from .singleton_meta import SingletonMeta
 
 
-class MetaPuller:
+class MetaPuller(metaclass=SingletonMeta):
     """
     Defines functions to pull episode length from any
     media on a supported streaming platform.
@@ -27,7 +16,7 @@ class MetaPuller:
 
     def __init__(self, slctd_pltfrm=0):
         self.slctd_pltfrm = slctd_pltfrm
-        self.platforms = []
+        self.pltfrm = None
         self.setup_platforms()
         self.final_ss = "assets/images/ep_length.png"
         self.length = 0
@@ -36,8 +25,8 @@ class MetaPuller:
         """
         Pulls length of episode from screen shot.
         """
-        length_pos = self.locate_length(self.platforms[self.slctd_pltfrm])
-        self.take_screenshot(length_pos, self.platforms[self.slctd_pltfrm])
+        length_pos = self.locate_length(self.pltfrm)
+        self.take_screenshot(length_pos, self.pltfrm)
 
         self.extract_number_from_image(self.final_ss)
 
@@ -45,33 +34,46 @@ class MetaPuller:
 
     def setup_platforms(self):
         """
-        Sets up all streaming platform options.
+        Sets up the chosen platform's data class to be used.
         """
-        self.platforms = [
-            Platform(
-                name="Dinsey",
-                img_ll="assets/images/ll_images/disney_ll.png",
-                move_left=30,
-                move_top=25,
-            ),
-            Platform(
-                name="Netflix",
-                img_ll="assets/images/ll_images/netflix_ll.png",
-                move_left=80,
-                move_top=-65,
-            ),
-        ]
+        platform_mapping = {0: "Disney", 1: "Netflix"}
+
+        platform_name = platform_mapping.get(self.slctd_pltfrm)
+
+        if platform_name is None:
+            raise ValueError(f"Invalid platform selection: {self.slctd_pltfrm}")
+
+        self.pltfrm = pfrms.create_platform(platform_name)
 
     def locate_length(self, pltfrm):
         """
         Wake and pause screen with mouse then return
         location of length number.
         """
-        time.sleep(2)
-        pg.click(960, 540, duration=0.5)
-        time.sleep(0.25)
+        location = None
 
-        return pg.locateOnScreen(pltfrm.img_ll, grayscale=False, confidence=0.75)
+        while location is None:
+            time.sleep(3)
+            pg.hotkey("alt", "tab")
+            time.sleep(2)
+            pg.click(360, 140, duration=2)
+            location = pg.locateOnScreen(
+                pltfrm.img_ll, grayscale=False, confidence=0.75
+            )
+
+        return location
+
+    def find_skip(self):
+        """
+        Tries to see if episode is over using skip button on each platform.
+        """
+        try:
+            return pg.locateOnScreen(
+                self.pltfrm.img_end, grayscale=False, confidence=0.75
+            )
+        except pg.ImageNotFoundException:
+            print("Image not found on screen")
+            return None
 
     def take_screenshot(self, pos, pltfrm):
         """
@@ -121,13 +123,18 @@ class MetaPuller:
         self.length = total_seconds
 
         if self.slctd_pltfrm == 0:
-            self.length = self.length - 35
+            self.length = self.length - 50
+
+        pg.hotkey("alt", "tab")
 
     def reset_run(self):
         """
         Attempts to restart episode before running again.
         """
         print("Reseting this episode and trying again.")
+
+        time.sleep(2)
+        pg.hotkey("alt", "tab")
 
         time.sleep(2)
         pg.click(950, 600, duration=0.5)
@@ -148,5 +155,7 @@ class MetaPuller:
 
         time.sleep(5)
         pg.click(960, 545, duration=1)
+
+        pg.hotkey("alt", "tab")
 
         self.run()

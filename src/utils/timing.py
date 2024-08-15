@@ -56,9 +56,9 @@ class Ep_Detector:
         # Find the virtual device
         for i in range(self.p.get_device_count()):
             dev = self.p.get_device_info_by_index(i)
-            if "VirtualSink" in dev["name"]:
+            if "VirtualSink" == dev["name"]:
                 dev_index = i
-                print(f"Found Virtual1 device: {dev['name']}")
+                print(f"Found Virtual device: {dev['name']}")
                 break
         else:
             print("Virtual device not found")
@@ -87,7 +87,7 @@ class Ep_Detector:
                     self.stream.close()
                     self.p.terminate()
                     return True
-                time.sleep(0.2)  # Sleep to prevent high CPU usage
+                time.sleep(0.5)  # Sleep to prevent high CPU usage
         except KeyboardInterrupt:
             pass
         self.stream.stop_stream()
